@@ -1,0 +1,14 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+.app-container {
+	.app-header {
+		text-align: center;
+		margin-top: 25px;
+	}
+}
