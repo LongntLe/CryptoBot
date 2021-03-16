@@ -5,4 +5,5 @@ Specs:
 * Connect to https://testnet.bitmex.com/ API
 * Make trades based a certain set of rules
 * Report on Profit/loss in real time through a dashboard
-* Frontend in D3.js
+- Frontend in React
+  - Data visualization in D3
