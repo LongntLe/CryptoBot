@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const spawn = require('child_process').spawn;
+let { PythonShell } = require('python-shell');
 
 const app = express();
 
@@ -37,12 +37,7 @@ const port = 5000;
 app.listen(port, () => `Server running on port ${ port }`);
 
 // Interact w/ Python Scripts
-const pythonProcess = spawn('python', ['./hello.py', 'Shug']);
-
-pythonProcess.stdout.on('data', (data) => {
+PythonShell.run('./src/Backend/bot_testnet.py', null, function (data, err) {
+	if (err) console.log(err);
 	console.log(data);
-
-	let dataStringify = data.toString();
-
-	console.log(dataStringify);
 });
