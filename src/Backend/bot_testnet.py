@@ -11,10 +11,11 @@ import websockets
 import sys
 import numpy as np
 import warnings
+from decouple import config
 warnings.filterwarnings("ignore")
 
-api_key = "KWLoDRAqZflf6_8C-oE4hnJc"
-api_secret = "Km8gURPFzdgOLYmuTDgr7aCBmizxiDIkLF8quLKfJ89F2s9E"
+api_key = config('API_KEY')
+api_secret = config('API_SECRET')
 TEST = False
 DRY_RUN = False
 MIN_ORDER = 50
