@@ -11,10 +11,18 @@ import websockets
 import sys
 import numpy as np
 import warnings
+<<<<<<< Updated upstream
 warnings.filterwarnings("ignore")
 
 api_key = "KWLoDRAqZflf6_8C-oE4hnJc"
 api_secret = "Km8gURPFzdgOLYmuTDgr7aCBmizxiDIkLF8quLKfJ89F2s9E"
+=======
+#from decouple import config
+warnings.filterwarnings("ignore")
+
+api_key = "KWLoDRAqZflf6_8C-oE4hnJc" #config('API_KEY')
+api_secret = "Km8gURPFzdgOLYmuTDgr7aCBmizxiDIkLF8quLKfJ89F2s9E"#config('API_SECRET')
+>>>>>>> Stashed changes
 TEST = False
 DRY_RUN = False
 MIN_ORDER = 50
@@ -24,7 +32,7 @@ MAX_ORDER = 150 if TEST else 500
 def get_daily_data(exchange):
     global TEST
     if not TEST:
-        date_N_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S")
+        date_N_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=20)).strftime("%Y-%m-%d %H:%M:%S")
         since = time.mktime(datetime.datetime.strptime(date_N_days_ago, "%Y-%m-%d %H:%M:%S").timetuple())*1000
         df = exchange.fetch_ohlcv('BTC/USD', timeframe = '1d', since=since, limit=500)
     elif TEST:
