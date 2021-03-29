@@ -12,6 +12,7 @@ import sys
 import numpy as np
 import warnings
 from decouple import config
+from os.path import getmtime
 warnings.filterwarnings("ignore")
 
 api_key = config('API_KEY')
@@ -20,12 +21,14 @@ TEST = False
 DRY_RUN = False
 MIN_ORDER = 50
 MAX_ORDER = 150 if TEST else 500
+WATCHED_FILES = './src/Backend/params.json'
+watched_files_mtimes = [(WATCHED_FILES, getmtime(WATCHED_FILES))]
 
 # helper functions
 def get_daily_data(exchange):
     global TEST
     if not TEST:
-        date_N_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S")
+        date_N_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=20)).strftime("%Y-%m-%d %H:%M:%S")
         since = time.mktime(datetime.datetime.strptime(date_N_days_ago, "%Y-%m-%d %H:%M:%S").timetuple())*1000
         df = exchange.fetch_ohlcv('BTC/USD', timeframe = '1d', since=since, limit=500)
     elif TEST:
@@ -61,18 +64,40 @@ def gen_id (stoploss):
         return 'tp1' + str(np.random.randint(0, 4000))
       
 def get_stoploss():
-    r2 = None
-    while r2 not in ['y', 'Y', 'Yes', 'yes']:
-        sl_lvl = input('You are holding a position without a stop loss. What is your desired stop loss level? ')
-        r2 = input('Are you sure your stop loss is {}? Y/N: '.format(sl_lvl))
+    with open('./src/Backend/params.json') as f:
+        data = json.load(f)
+            
+    sl_lvl = data['stop_loss']
     return sl_lvl
     
 def get_takeprofit():
-    r = None
-    while r not in ['y', 'Y', 'Yes', 'yes']:
-        take_profit = input('What is your desired take profit level? ')
-        r = input('Are you sure your take profit is: {}? Y/N: '.format(take_profit))
+    with open('./src/Backend/params.json') as f:
+        data = json.load(f)
+            
+    take_profit = data['take_profit']
     return take_profit
+
+def write_takeprofit(take_profit):
+    with open('./src/Backend/params.json') as f:
+        data = json.load(f)
+    data['take_profit'] = take_profit
+    with open('./src/Backend/params.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+def write_stoploss(stop_loss):
+    with open('./src/Backend/params.json') as f:
+        data = json.load(f)
+    data['stop_loss'] = stop_loss
+    with open('./src/Backend/params.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+        
+def check_file_change():
+    global watched_files_mtimes
+    for f, mtime in watched_files_mtimes:
+        #print(f, mtime)
+        if getmtime(f) > mtime:
+            watched_files_mtimes = [(f, getmtime(f))]
+            return True
             
 async def capture_data():
     uri = "wss://testnet.bitmex.com/realtime?subscribe=trade:XBTUSD"
@@ -99,7 +124,7 @@ def get_position(client):
     while True:
         try:
             p = client.Position.Position_get(filter=json.dumps({'symbol': 'XBTUSD'})).result()[0][0]['currentQty'] 
-            return p # need check
+            return p
         except:
             time.sleep(sleep_ctr)
             sleep_ctr += 1
@@ -109,6 +134,10 @@ def run_loop(md):
     global ctr, high, low, current_day, traded, tped, client, exchange, risk_lvl, bet_perc, take_profit, sl_lvl, prev_position, sl_id, tp_id, short_cond, long_cond, TEST
     ctr += 1
     position = get_position(client)
+    
+    if take_profit == 0:
+        tped = True
+            
     if ctr % 1 == 0:
         print ('{} -- Price: {} | Take Profit: {} | Stop loss: {}'.format(datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), md, take_profit if not tped else 'Already taken/ Not exist', sl_lvl if position != 0 else 'Not exist'))
         
@@ -116,34 +145,22 @@ def run_loop(md):
         if len(client.Order.Order_getOrders(filter=json.dumps({"open": True})).result()[0]) > 0:
             print ('Bot started with unknown orders. All orders cancelled!')
             client.Order.Order_cancelAll().result()
-        
-        r1 = None
-        while r1 not in ['y', 'Y', 'Yes', 'yes', 'N', 'n', 'No', 'no']:
-            if r1 != None:
-                print('Response not recognized. Please try again!')
-            r1 = input('You are holding a position without a take profit. Do you need a take profit? Y/N: ') 
-        if r1 in ['y', 'Y', 'Yes', 'yes']:
-            take_profit = get_takeprofit()
-            take_profit = int(float(take_profit))
-            while True:
-                try:
-                    client.Order.Order_new(symbol='XBTUSD', orderQty=-int(position/2), price=take_profit).result()
-                    break
-                except Exception as e:
-                    print (e)
-                    print ('error posting limit order. Retrying...')
-                    time.sleep(60)
-            print ('Posted take profit at {}'.format(take_profit))
-        elif r1 in ['N', 'n', 'No', 'no']:
-            print ('No take profit needed. Position will be exited when reached stop loss.')
-            take_profit = 100000 if position > 0 else 0
-            tped = True
-        else:
-            print ('Response not recognized. Bot terminated.')
-            sys.exit()
-        
-        sl_lvl = get_stoploss()
             
+        take_profit = get_takeprofit()
+        sl_lvl = get_stoploss()
+        
+        print ('Loaded json file -- take profit: {}, stop loss: {}'.format(take_profit, sl_lvl))
+        
+        while True:
+            try:
+                client.Order.Order_new(symbol='XBTUSD', orderQty=-int(position/2), price=take_profit).result()
+                print ('Posted take profit at {}'.format(take_profit))
+                break
+            except Exception as e:
+                print (e)
+                print ('error posting limit order. Retrying...')
+                time.sleep(60)
+                    
         if position > 0 and short_cond:
             orderQty = get_orderQty(client, md, high, low) * np.sign(position)
         elif position < 0 and long_cond:
@@ -154,14 +171,15 @@ def run_loop(md):
         print ('Posted stop loss order')
         traded = False
     
-    if ctr >= 20: 
+    if ctr >= 5: 
         print ('Conducting status check...')
         order_types = [ord['ordType'] for ord in client.Order.Order_getOrders(filter=json.dumps({"open": True})).result()[0]]
         if position == 0 and len(client.Order.Order_getOrders(filter=json.dumps({"open": True})).result()[0]) > 0:
             client.Order.Order_cancelAll().result()
+            print('Status check -- cancel all orders')
+        mismatched_tp_sl = check_file_change() and (take_profit != get_takeprofit() or sl_lvl != get_stoploss())
         if position != 0:
-            if 'Stop' not in order_types:
-                r2 = None
+            if 'Stop' not in order_types or mismatched_tp_sl:
                 sl_lvl = get_stoploss()
                 if position > 0 and short_cond:
                     orderQty = get_orderQty(client, md, high, low) * np.sign(position)
@@ -177,14 +195,11 @@ def run_loop(md):
                         print (e)
                         time.sleep(5)
                 print ('Posted stop loss order')
-            if (tped == False) and ('Limit' not in order_types):
+            if (tped == False) and ('Limit' not in order_types) or mismatched_tp_sl:
                 valid_type = (isinstance(take_profit, float) or isinstance(take_profit, int))
                 invalid_value_pos = position > 0 and take_profit <= md
                 invalid_value_neg = position < 0 and take_profit >= md
-                if invalid_value_pos or valid_type == False:
-                    take_profit = input('System detected deprecated take profit. Please enter new take profit: ')
-                elif invalid_value_neg or valid_type == False:
-                    take_profit = input('System detected deprecated take profit. Please enter new take profit: ')
+                take_profit = get_takeprofit()
                 client.Order.Order_new(symbol='XBTUSD', orderQty=-int(position/2), price=take_profit).result()
                 print ('Posted take profit order at {}'.format(take_profit))
         ctr = 0
@@ -203,6 +218,7 @@ def run_loop(md):
         for ord in client.Order.Order_getOrders(filter=json.dumps({"open": True})).result()[0]:
             if ord['ordType'] == 'Stop':
                 client.Order.Order_cancel(orderID=ord['orderID']).result()
+                print ('cond -- cancel stop loss')
             
         
         # change stop loss
@@ -215,6 +231,7 @@ def run_loop(md):
                 sl_lvl = price
             orderQty = get_orderQty(client, md, high, low) * np.sign(position) if short_cond else 0
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+orderQty), stopPx=price, execInst="LastPrice").result() # might change back to MarkPrice.
+            write_stoploss(sl_lvl)
         elif position < 0:
             if high - 2 > md:
                 price = high - 2 # also placeholder, see comment for case "position > 0"
@@ -224,10 +241,11 @@ def run_loop(md):
                 sl_lvl = price
             orderQty = get_orderQty(client, md, high, low) * np.sign(position) if long_cond else 0
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+orderQty), stopPx=price, execInst="LastPrice").result()
+            write_stoploss(sl_lvl)
     
     trade_cond1 = (position == 0)
     trade_cond2 = (prev_position is not None) and (np.sign(prev_position) != np.sign(position))
-    trade_cond3 = (prev_position is not None) and (np.sign(prev_position) == np.sign(position)) and (position != prev_position)
+    trade_cond3 = (prev_position is not None) and (np.sign(prev_position) == np.sign(position)) and (abs(position) < abs(prev_position))
     if trade_cond1:
         if md > high - 2 and not traded and long_cond:
             orderQty = get_orderQty(client, md, high, low)
@@ -243,10 +261,12 @@ def run_loop(md):
                     break # not really needed
             take_profit = md + (high-low)
             client.Order.Order_new(symbol='XBTUSD', orderQty=-int(orderQty/2), price=take_profit).result()
+            write_takeprofit(take_profit)
             print ('Posted long order for {} XBT; Take profit at {}.'.format(orderQty, take_profit))
             sl_orderQty = orderQty if short_cond else 0 
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+sl_orderQty), stopPx=int(md*0.85), execInst="LastPrice").result()
             sl_lvl = int(md*0.85)
+            write_stoploss(sl_lvl)
             print ('Posted stop loss order')
             traded = True
             tped = False
@@ -266,10 +286,12 @@ def run_loop(md):
                     break # not really needed
             take_profit = md - (high-low)
             client.Order.Order_new(symbol='XBTUSD', orderQty=-int(orderQty/2), price=take_profit).result()
+            write_takeprofit(take_profit)
             print ('Posted short order for {} XBT; Take profit at {}.'.format(orderQty, take_profit))
             sl_orderQty = orderQty if long_cond else 0 
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+sl_orderQty), stopPx=int(md*1.15), execInst="LastPrice").result()
             sl_lvl = int(md*1.15)
+            write_stoploss(sl_lvl)
             print ('Posted stop loss order')
             traded = True
             tped = False
@@ -281,25 +303,29 @@ def run_loop(md):
             client.Order.Order_cancelAll().result()
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position), stopPx=int(md*0.85), execInst="LastPrice").result()
             sl_lvl = int(md*0.85)
+            write_stoploss(sl_lvl)
             print ('Posted stop loss order')
         elif position < 0:
             take_profit = md - (high-low)
             client.Order.Order_cancelAll().result()
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position), stopPx=int(md*1.15), execInst="LastPrice").result()
             sl_lvl = int(md*1.15)
+            write_stoploss(sl_lvl)
             print ('Posted stop loss order')
         
         client.Order.Order_new(symbol='XBTUSD', orderQty=-int(position/2), price=take_profit).result()
+        write_takeprofit(take_profit)
         print ('Posted take profit order at {}'.format(take_profit))
         tped = False
     
     elif trade_cond3:
-        print (prev_position, position)
+        #print (prev_position, position)
         tped = True
         print ('Took profit!')
         for ord in client.Order.Order_getOrders(filter=json.dumps({"open": True})).result()[0]:
             if ord['ordType'] == 'Stop':
                 client.Order.Order_cancel(orderID=ord['orderID']).result()
+                print ('Cancel StopLoss')
         if position > 0: 
             if low + 2 < md:
                 price = low + 2 # placeholder for edge case of minute bars (instead of hourly bars)
@@ -309,6 +335,8 @@ def run_loop(md):
                 sl_lvl = price
             orderQty = get_orderQty(client, md, high, low) * np.sign(position) if short_cond else 0
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+orderQty), stopPx=price, execInst="LastPrice").result() # might change back to MarkPrice.
+            write_stoploss(price)
+            print('stop loss updated')
         elif position < 0:
             if high - 2 > md:
                 price = high - 2 # also placeholder, see comment for case "position > 0"
@@ -318,6 +346,8 @@ def run_loop(md):
                 sl_lvl = price
             orderQty = get_orderQty(client, md, high, low) * np.sign(position) if long_cond else 0
             client.Order.Order_new(symbol='XBTUSD', orderQty=-(position+orderQty), stopPx=price, execInst="LastPrice").result()
+            write_stoploss(price)
+            print('stop loss updated')
     
     prev_position = position
     time.sleep(1)
@@ -334,8 +364,7 @@ tped = False
 risk_lvl = 0.03
 bet_perc = 0.1
 ctr = 0
-take_profit = None
-sl_lvl = None
+take_profit = sl_lvl = None
 prev_position = None
 #sl_id, tp_id = 'stoploss' + str(np.random.randint(0, 4000)), 'tp1' + str(np.random.randint(0, 4000))
 print ('Bot Initiated.')
