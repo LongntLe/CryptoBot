@@ -3,6 +3,8 @@ const cors = require('cors');
 let { PythonShell } = require('python-shell');
 
 const app = express();
+app.use(express.json({ limit: '1mb' }));
+app.use(cors());
 
 // Base Api
 app.get('/api/teammembers', cors(), (req, res) => {
@@ -31,6 +33,13 @@ app.get('/api/teammembers', cors(), (req, res) => {
 
 	res.json(teammembers);
 });
+
+app.post('/api/formsubmit', cors(), (req, res) => {
+	let data = JSON.stringify(req.body.data);
+	
+	fs.writeFileSync('./src/Backend/params.json', data);
+	res.send('form submitted successfully');
+})
 
 const port = 5000;
 
