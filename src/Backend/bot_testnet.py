@@ -13,6 +13,8 @@ import numpy as np
 import warnings
 from decouple import config
 from os.path import getmtime
+from dateutil.tz import tzutc
+import pytz
 warnings.filterwarnings("ignore")
 
 api_key = config('API_KEY')
@@ -23,6 +25,7 @@ MIN_ORDER = 50
 MAX_ORDER = 150 if TEST else 500
 WATCHED_FILES = './src/Backend/params.json'
 watched_files_mtimes = [(WATCHED_FILES, getmtime(WATCHED_FILES))]
+data = []
 
 # helper functions
 def get_daily_data(exchange):
@@ -40,6 +43,23 @@ def get_daily_data(exchange):
     df.Timestamp = df.Timestamp.apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3))
     print (df)
     return df.High.tolist()[-2], df.Low.tolist()[-2]
+   
+def record_balance(client, md, data):
+    while True:
+        try:
+            r = client.User.User_getMargin().result()[0]
+            data.append(r)
+            return data
+        except:
+            time.sleep(5)
+            continue
+            
+def datetime_handler(x):
+    epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
+
+    if isinstance(x, datetime.datetime):
+        return (x - epoch).total_seconds()
+    raise TypeError("Unknown type")
 
 def get_balance(client, md):
     while True:
@@ -131,9 +151,13 @@ def get_position(client):
             continue
 
 def run_loop(md):
-    global ctr, high, low, current_day, traded, tped, client, exchange, risk_lvl, bet_perc, take_profit, sl_lvl, prev_position, sl_id, tp_id, short_cond, long_cond, TEST
+    global ctr, high, low, current_day, traded, tped, client, exchange, risk_lvl, bet_perc, take_profit, sl_lvl, prev_position, sl_id, tp_id, short_cond, long_cond, TEST, data
     ctr += 1
     position = get_position(client)
+    data = record_balance(client, md, data)
+    if ctr % 5 == 0:
+        with open('data.txt', 'w') as outfile:
+            json.dump(data, outfile, default=datetime_handler)
     
     if take_profit == 0:
         tped = True
@@ -162,7 +186,7 @@ def run_loop(md):
                 time.sleep(60)
                     
         if position > 0 and short_cond:
-            orderQty = get_orderQty(client, md, high, low) * np.sign(position)
+            orderQty = get_orget_orderQty(client, md, high, low) * np.sign(position)
         elif position < 0 and long_cond:
             orderQty = get_orderQty(client, md, high, low) * np.sign(position)
         else:
