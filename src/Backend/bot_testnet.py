@@ -153,6 +153,7 @@ def run_loop(md):
             
         if position > 0 and short_cond:
             orderQty = get_orderQty(client, md, high, low) * np.sign(position)
+            orderQty = get_orget_orderQty(client, md, high, low) * np.sign(position)
         elif position < 0 and long_cond:
             orderQty = get_orderQty(client, md, high, low) * np.sign(position)
         else:
