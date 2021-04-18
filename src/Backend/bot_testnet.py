@@ -12,6 +12,13 @@ import sys
 import numpy as np
 import warnings
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+from decouple import config
+from os.path import getmtime
+from dateutil.tz import tzutc
+import pytz
+>>>>>>> Stashed changes
 warnings.filterwarnings("ignore")
 
 api_key = "KWLoDRAqZflf6_8C-oE4hnJc"
@@ -27,6 +34,12 @@ TEST = False
 DRY_RUN = False
 MIN_ORDER = 50
 MAX_ORDER = 150 if TEST else 500
+<<<<<<< Updated upstream
+=======
+WATCHED_FILES = './src/Backend/params.json'
+watched_files_mtimes = [(WATCHED_FILES, getmtime(WATCHED_FILES))]
+data = []
+>>>>>>> Stashed changes
 
 # helper functions
 def get_daily_data(exchange):
@@ -44,6 +57,23 @@ def get_daily_data(exchange):
     df.Timestamp = df.Timestamp.apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3))
     print (df)
     return df.High.tolist()[-2], df.Low.tolist()[-2]
+   
+def record_balance(client, md, data):
+    while True:
+        try:
+            r = client.User.User_getMargin().result()[0]
+            data.append(r)
+            return data
+        except:
+            time.sleep(5)
+            continue
+            
+def datetime_handler(x):
+    epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
+
+    if isinstance(x, datetime.datetime):
+        return (x - epoch).total_seconds()
+    raise TypeError("Unknown type")
 
 def get_balance(client, md):
     while True:
@@ -113,9 +143,20 @@ def get_position(client):
             continue
 
 def run_loop(md):
-    global ctr, high, low, current_day, traded, tped, client, exchange, risk_lvl, bet_perc, take_profit, sl_lvl, prev_position, sl_id, tp_id, short_cond, long_cond, TEST
+    global ctr, high, low, current_day, traded, tped, client, exchange, risk_lvl, bet_perc, take_profit, sl_lvl, prev_position, sl_id, tp_id, short_cond, long_cond, TEST, data
     ctr += 1
     position = get_position(client)
+<<<<<<< Updated upstream
+=======
+    data = record_balance(client, md, data)
+    if ctr % 5 == 0:
+        with open('data.txt', 'w') as outfile:
+            json.dump(data, outfile, default=datetime_handler)
+    
+    if take_profit == 0:
+        tped = True
+            
+>>>>>>> Stashed changes
     if ctr % 1 == 0:
         print ('{} -- Price: {} | Take Profit: {} | Stop loss: {}'.format(datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'), md, take_profit if not tped else 'Already taken/ Not exist', sl_lvl if position != 0 else 'Not exist'))
         
@@ -152,7 +193,6 @@ def run_loop(md):
         sl_lvl = get_stoploss()
             
         if position > 0 and short_cond:
-            orderQty = get_orderQty(client, md, high, low) * np.sign(position)
             orderQty = get_orget_orderQty(client, md, high, low) * np.sign(position)
         elif position < 0 and long_cond:
             orderQty = get_orderQty(client, md, high, low) * np.sign(position)
