@@ -1,5 +1,20 @@
 # Wallbreakers Cohort 8: Group Project (Algo trading Bot for Bitmex)
 
+## Project Setup
+- Install node packages - `npm install`
+- `npm run dev` - Will run node express server on port 5000 & react frontend from parcel on port 1234
+
+## Running The Bot Trading Script
+You need a BitMex or BitMex Testnet API key for this to work
+
+- Add your API credentials to `bot_testnet.py`
+  - `api_key` - Line 18
+  - `api_secret` - Line 19
+- CD into `src/Backend`
+- Install any needed python dependencies with pip
+- run `python bot_testnet.py`
+- answer prompt questions
+
 Specs:
 
 * Connect to https://testnet.bitmex.com/ API
