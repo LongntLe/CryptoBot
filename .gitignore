@@ -6,3 +6,4 @@ dist/
 coverage/
 .vscode/
 data.txt
+/src/Tests/.ipynb*
