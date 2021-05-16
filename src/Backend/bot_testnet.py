@@ -15,10 +15,13 @@ from decouple import config
 from os.path import getmtime
 from dateutil.tz import tzutc
 import pytz
+import pymongo
 warnings.filterwarnings("ignore")
 
 api_key = config('API_KEY')
 api_secret = config('API_SECRET')
+mongo_username = config('MONGO_USERNAME')
+mongo_password = config('MONGO_PASSWORD')
 TEST = False
 DRY_RUN = False
 MIN_ORDER = 50
@@ -26,6 +29,10 @@ MAX_ORDER = 150 if TEST else 500
 WATCHED_FILES = './src/Backend/params.json'
 watched_files_mtimes = [(WATCHED_FILES, getmtime(WATCHED_FILES))]
 data = []
+mongo_client = pymongo.MongoClient("mongodb+srv://{}:{}@cluster0.we9tx.mongodb.net/crypto_info?retryWrites=true&w=majority".format(mongo_username, mongo_password))
+db = mongo_client.get_database('crypto_info')
+states = db.bot_states
+print('Connection to mongodb Atlas established. Current records: ', states.count_documents({}))
 
 # helper functions
 def get_daily_data(exchange):
@@ -45,9 +52,11 @@ def get_daily_data(exchange):
     return df.High.tolist()[-2], df.Low.tolist()[-2]
    
 def record_balance(client, md, data):
+    global states
     while True:
         try:
             r = client.User.User_getMargin().result()[0]
+            states.insert_one(r)
             data.append(r)
             return data
         except:
