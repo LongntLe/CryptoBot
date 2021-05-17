@@ -19,17 +19,7 @@ app.get('/api/teammembers', cors(), (req, res) => {
 		{
 			id: 2,
 			name: 'Long Le',
-			contribution: 'Bitmex Trading Bot Script in Python'
-		},
-		{
-			id: 3,
-			name: 'Suraj Mondem',
-			contribution: 'In Progress'
-		},
-		{
-			id: 4,
-			name: 'Samuel Oliver Bedu-Annan',
-			contribution: 'In Progress'
+			contribution: 'Bitmex Trading Script in Python and MongoDB setup'
 		}
 	];
 
