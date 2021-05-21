@@ -1,10 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import chartData from '../../data/financialData.json';
-
 import './Chart.scss';
 
 const Chart = () => {
+	const [chartData, setChartData] = useState([]);
+
+	const fetchChartData = () => {
+		fetch('http://localhost:5000/api/crypto')
+		.then(res => res.json())
+		.then(cryptoData => {
+			setChartData(cryptoData);
+		});
+	}
+
+	useEffect(() => {
+		fetchChartData();
+	}, []);
 
 	const buildChart = (financialMetric, timeMetric) => {
 		let dimensions = {
@@ -17,20 +28,20 @@ const Chart = () => {
 				left: 90
 			}
 		};
-		
+
 		dimensions.boundedWidth = dimensions.width
 			- dimensions.margins.left
 			- dimensions.margins.right;
-		
+
 		dimensions.boundedHeight = dimensions.height
 			- dimensions.margins.top
 			- dimensions.margins.bottom;
-		
+
 		const chartContainer = d3.select('#chart')
 			.append('svg')
 				.attr('width', dimensions.width)
 				.attr('height', dimensions.height);
-		
+
 		const bounds = chartContainer.append('g')
 			.style('transform', `translate(${
 				dimensions.margins.left
@@ -47,32 +58,34 @@ const Chart = () => {
 			yAccessor = data => (data[financialMetric] / 100000000);
 			yDomain = d3.extent(chartData, yAccessor);
 		}
-		
+
 		// y Scale
-		console.log(yDomain)
 		const yScale = d3.scaleLinear()
 			.domain(yDomain)
 			.range([dimensions.boundedHeight, 0])
 			.nice();
-			
-		// x Axis - format date from python timestamp to JS timestamp
-		const xAccessor = data => data[timeMetric] * 1000;
+
+		// x Axis - format date from Mongo timestamp to JS timestamp
+		const xAccessor = data => {
+			const jsTimeStamp = parseInt(data[timeMetric].toString().substr(0,8), 16) * 1000;
+			return jsTimeStamp;
+		};
 		// x Scale
 		const xDomain = d3.extent(chartData, xAccessor);
 		const xScale = d3.scaleTime()
 			.domain(xDomain)
 			.range([0, dimensions.boundedWidth])
 			.nice();
-		
+
 		const lineGenerator = d3.line()
 			.x(data => xScale(xAccessor(data)))
 			.y(data => yScale(yAccessor(data)));
-		
+
 		const line = bounds.append('path')
 			.attr('d', lineGenerator(chartData))
 			.attr('fill', 'none')
 			.attr('stroke', '#141CDE')
-		
+
 		// Draw Axes
 		const yAxisGenerator = d3.axisLeft()
 			.scale(yScale)
@@ -91,16 +104,16 @@ const Chart = () => {
 			.attr('fill', '#000')
 			.style('font-size', '1.4em')
 			.text(yLabel);
-		
+
 		const xAxisGenerator = d3.axisBottom()
 			.scale(xScale)
-		
+
 		const xAxis = bounds.append('g')
 			.call(xAxisGenerator)
 			.style('transform', `translateY(${
 				dimensions.boundedHeight
 			}px)`);
-		
+
 		// X Axis Label
 		const xAxisLabel = xAxis.append('text')
 			.attr('x', dimensions.boundedWidth / 2)
@@ -111,13 +124,15 @@ const Chart = () => {
 	}
 
 	useEffect(() => {
-		buildChart('unrealisedPnl', 'timestamp');
-		buildChart('amount', 'timestamp');
-	}, [buildChart]);
+		if (chartData.length > 0) {
+			buildChart('unrealisedPnl', 'timestamp');
+			buildChart('amount', 'timestamp');
+		}
+	}, [chartData]);
 
 	return (
 		<div id="chart">
-			
+
 		</div>
 	)
 }
