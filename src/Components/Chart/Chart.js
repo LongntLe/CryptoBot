@@ -67,7 +67,7 @@ const Chart = () => {
 
 		// x Axis - format date from Mongo timestamp to JS timestamp
 		const xAccessor = data => {
-			const jsTimeStamp = parseInt(data[timeMetric].toString().substr(0,8), 16) * 1000;
+			const jsTimeStamp = new Date(data[timeMetric]);
 			return jsTimeStamp;
 		};
 		// x Scale
