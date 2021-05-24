@@ -105,8 +105,18 @@ const Chart = () => {
 			.style('font-size', '1.4em')
 			.text(yLabel);
 
+		// Y Grid
+		const yAxisGridGenerator = d3.axisLeft(yScale)
+			.tickSize(-dimensions.boundedWidth)
+			.tickFormat('')
+			.ticks(15);
+		
+		const yAxisGrid = yAxis.append('g')
+			.call(yAxisGridGenerator)
+			.attr('class', 'y axis-grid');
+
 		const xAxisGenerator = d3.axisBottom()
-			.scale(xScale)
+			.scale(xScale);
 
 		const xAxis = bounds.append('g')
 			.call(xAxisGenerator)
@@ -121,6 +131,16 @@ const Chart = () => {
 			.attr('fill', '#000')
 			.style('font-size', '1.4em')
 			.text('Time Stamp');
+
+		// X Grid
+		const xAxisGridGenerator = d3.axisBottom(xScale)
+			.tickSize(-dimensions.boundedHeight)
+			.tickFormat('')
+			.ticks(15);
+		
+		const xAxisGrid = xAxis.append('g')
+			.call(xAxisGridGenerator)
+			.attr('class', 'x axis-grid');
 	}
 
 	useEffect(() => {
