@@ -81,11 +81,6 @@ const Chart = () => {
 			.x(data => xScale(xAccessor(data)))
 			.y(data => yScale(yAccessor(data)));
 
-		const line = bounds.append('path')
-			.attr('d', lineGenerator(chartData))
-			.attr('fill', 'none')
-			.attr('stroke', '#141CDE')
-
 		// Draw Axes
 		const yAxisGenerator = d3.axisLeft()
 			.scale(yScale)
@@ -141,6 +136,11 @@ const Chart = () => {
 		const xAxisGrid = xAxis.append('g')
 			.call(xAxisGridGenerator)
 			.attr('class', 'x axis-grid');
+
+		const line = bounds.append('path')
+			.attr('d', lineGenerator(chartData))
+			.attr('fill', 'none')
+			.style('stroke', '#141CDE');
 	}
 
 	useEffect(() => {
