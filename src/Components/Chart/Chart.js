@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Tooltip } from './Tooltip';
 import * as d3 from 'd3';
 import './Chart.scss';
 
@@ -37,8 +38,9 @@ const Chart = () => {
 			- dimensions.margins.top
 			- dimensions.margins.bottom;
 
-		const chartContainer = d3.select('#chart')
+		const chartContainer = d3.select('#charts')
 			.append('svg')
+				.attr('class', 'chart')
 				.attr('width', dimensions.width)
 				.attr('height', dimensions.height);
 
@@ -138,9 +140,50 @@ const Chart = () => {
 			.attr('class', 'x axis-grid');
 
 		const line = bounds.append('path')
+			.data(chartData)
 			.attr('d', lineGenerator(chartData))
 			.attr('fill', 'none')
-			.style('stroke', '#141CDE');
+			.style('stroke', '#141CDE')
+			.style('stroke-width', '0.5px');
+
+		const listenerRect = bounds.append('rect')
+			.attr('class', 'listener-rect')
+			.attr('width', dimensions.boundedWidth)
+			.attr('height', dimensions.boundedHeight)
+			.on('mousemove', handleMouseMove)
+			.on('mouseleave', handleMouseLeave);
+		
+		const tooltip = d3.select('#tooltip');
+		const bisectDate = d3.bisector(function(dataPoint){
+			if (dataPoint && dataPoint.timestamp) return new Date(dataPoint.timestamp); 
+		}).left;
+		
+		function handleMouseMove(event){
+			const mousePosition = d3.pointer(event);
+			const hoveredPoint = new Date(xScale.invert(mousePosition[0]));
+			const currentIndex = bisectDate(chartData, hoveredPoint, 1);
+			const prevPoint = chartData[currentIndex - 1];
+			const currentPoint = chartData[currentIndex];
+			const closestDataPoint = hoveredPoint - prevPoint.timestamp > currentPoint.timestamp - hoveredPoint ? currentPoint : prevPoint;
+
+			tooltip.style('opacity', 1);
+			tooltip.select('#value')
+				.text(closestDataPoint.unrealisedPnl);
+			tooltip.select('#timestamp')
+				.text(closestDataPoint.timestamp);
+
+			const x = xScale(xAccessor(closestDataPoint) - dimensions.margins.left);
+			const y = yScale(yAccessor(closestDataPoint) + dimensions.margins.top);
+			tooltip.style('transform', `translate(
+				${ x }px,
+				${ y }px
+			)`);
+
+		}
+		
+		function handleMouseLeave(){
+			tooltip.style('opacity', 0);
+		}
 	}
 
 	useEffect(() => {
@@ -151,8 +194,9 @@ const Chart = () => {
 	}, [chartData]);
 
 	return (
-		<div id="chart">
+		<div id="charts">
 
+			<Tooltip />
 		</div>
 	)
 }
