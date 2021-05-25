@@ -154,6 +154,11 @@ const Chart = () => {
 			.on('mouseleave', handleMouseLeave);
 		
 		const tooltip = d3.select('#tooltip');
+
+		const tooltipCircle = bounds.append('circle')
+			.attr('class', 'tooltip-circle')
+			.attr('r', 4.5);
+
 		const bisectDate = d3.bisector(function(dataPoint){
 			if (dataPoint && dataPoint.timestamp) return new Date(dataPoint.timestamp); 
 		}).left;
@@ -179,10 +184,15 @@ const Chart = () => {
 				${ y }px
 			)`);
 
+			tooltipCircle
+				.attr('cx', xScale(closestDataPoint.timestamp))
+				.attr('cy', yScale(closestDataPoint.unrealisedPnl))
+				.style('opacity', 1);
 		}
 		
 		function handleMouseLeave(){
 			tooltip.style('opacity', 0);
+			tooltipCircle.style('opacity', 0)
 		}
 	}
 
