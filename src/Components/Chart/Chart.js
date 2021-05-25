@@ -18,6 +18,11 @@ const Chart = () => {
 		fetchChartData();
 	}, []);
 
+	// Example Timestamp - 2021-04-18T05:31:00.894Z
+	// More Info on D3 time conversion: https://github.com/d3/d3-time-format
+	const dateParser = d3.utcParse('%Y-%m-%dT%H:%M:%S.%LZ');
+	const formatDate = d3.timeFormat('%B %d, %Y');
+
 	const buildChart = (financialMetric, timeMetric) => {
 		let dimensions = {
 			width: window.innerWidth * 0.9,
@@ -25,7 +30,7 @@ const Chart = () => {
 			margins: {
 				top: 15,
 				right: 15,
-				bottom: 90,
+				bottom: 105,
 				left: 90
 			}
 		};
@@ -69,9 +74,10 @@ const Chart = () => {
 
 		// x Axis - format date from Mongo timestamp to JS timestamp
 		const xAccessor = data => {
-			const jsTimeStamp = new Date(data[timeMetric]);
-			return jsTimeStamp;
+			const date = data[timeMetric];
+			return dateParser(date);
 		};
+
 		// x Scale
 		const xDomain = d3.extent(chartData, xAccessor);
 		const xScale = d3.scaleTime()
@@ -112,7 +118,8 @@ const Chart = () => {
 			.attr('class', 'y axis-grid');
 
 		const xAxisGenerator = d3.axisBottom()
-			.scale(xScale);
+			.scale(xScale)
+			.tickFormat(formatDate);
 
 		const xAxis = bounds.append('g')
 			.call(xAxisGenerator)
