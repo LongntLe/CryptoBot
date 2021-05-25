@@ -25,7 +25,7 @@ const Chart = () => {
 			margins: {
 				top: 15,
 				right: 15,
-				bottom: 45,
+				bottom: 90,
 				left: 90
 			}
 		};
@@ -76,8 +76,7 @@ const Chart = () => {
 		const xDomain = d3.extent(chartData, xAccessor);
 		const xScale = d3.scaleTime()
 			.domain(xDomain)
-			.range([0, dimensions.boundedWidth])
-			.nice();
+			.range([0, dimensions.boundedWidth]);
 
 		const lineGenerator = d3.line()
 			.x(data => xScale(xAccessor(data)))
@@ -95,7 +94,7 @@ const Chart = () => {
 		// Y Axis Label
 		const yAxisLabel = yAxis.append('text')
 			.attr('x', -dimensions.boundedHeight / 2)
-			.attr('y', -dimensions.margins.left + 10)
+			.attr('y', -dimensions.margins.left + 12)
 			.style('transform', 'rotate(-90deg)')
 			.style('text-anchor', 'middle')
 			.attr('fill', '#000')
@@ -106,7 +105,7 @@ const Chart = () => {
 		const yAxisGridGenerator = d3.axisLeft(yScale)
 			.tickSize(-dimensions.boundedWidth)
 			.tickFormat('')
-			.ticks(15);
+			.ticks(12);
 		
 		const yAxisGrid = yAxis.append('g')
 			.call(yAxisGridGenerator)
@@ -121,10 +120,17 @@ const Chart = () => {
 				dimensions.boundedHeight
 			}px)`);
 
+		xAxis.selectAll('text')
+			.attr('y', 0)
+			.attr('x', 12)
+			.attr('dy', '0.3em')
+			.attr('transform', 'rotate(90)')
+			.style('text-anchor', 'start');
+
 		// X Axis Label
 		const xAxisLabel = xAxis.append('text')
 			.attr('x', dimensions.boundedWidth / 2)
-			.attr('y', dimensions.margins.bottom - 9)
+			.attr('y', dimensions.margins.bottom - 12)
 			.attr('fill', '#000')
 			.style('font-size', '1.4em')
 			.text('Time Stamp');
@@ -133,7 +139,7 @@ const Chart = () => {
 		const xAxisGridGenerator = d3.axisBottom(xScale)
 			.tickSize(-dimensions.boundedHeight)
 			.tickFormat('')
-			.ticks(15);
+			.ticks(12);
 		
 		const xAxisGrid = xAxis.append('g')
 			.call(xAxisGridGenerator)
