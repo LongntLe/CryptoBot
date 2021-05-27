@@ -198,7 +198,7 @@ const Chart = () => {
 			)`);
 
 			tooltipCircle
-				.attr('cx', xScale(closestDataPoint.timestamp))
+				.attr('cx', x)
 				.attr('cy', yScale(closestDataPoint.unrealisedPnl))
 				.style('opacity', 1);
 		}
