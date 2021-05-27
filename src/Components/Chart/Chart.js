@@ -186,7 +186,7 @@ const Chart = () => {
 
 			tooltip.style('opacity', 1);
 			tooltip.select('#value')
-				.text(closestDataPoint.unrealisedPnl);
+				.html(`<span class="bold-text">${ yLabel }</span>: ${ closestDataPoint.unrealisedPnl }`);
 			tooltip.select('#timestamp')
 				.text(closestDataPoint.timestamp);
 
@@ -205,7 +205,7 @@ const Chart = () => {
 		
 		function handleMouseLeave(){
 			tooltip.style('opacity', 0);
-			tooltipCircle.style('opacity', 0)
+			tooltipCircle.style('opacity', 0);
 		}
 	}
 
