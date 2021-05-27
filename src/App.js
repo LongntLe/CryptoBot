@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom';
 
 import './App.scss';
 
+import { Landing } from './Components/Landing';
 import ChartContainer from './Components/Chart/ChartContainer';
 import DashBoard from './Components/DashBoard/DashBoard';
 import { TeamMembers } from './Components/TeamMembers/TeamMembers';
@@ -9,7 +10,7 @@ import { TeamMembers } from './Components/TeamMembers/TeamMembers';
 const App = () => {
 	return(
 		<div className="app-container">
-			<h1 className="app-header">BitMex Trading Bot</h1>
+			<Landing />
 			<ChartContainer />
 			<DashBoard />
 			<TeamMembers />
