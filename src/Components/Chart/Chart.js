@@ -132,7 +132,7 @@ const Chart = () => {
 
 	return (
 		<div id="chart">
-
+			<h2>Your Crypto Assets</h2>
 		</div>
 	)
 }
