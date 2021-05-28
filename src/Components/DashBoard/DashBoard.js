@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './DashBoard.scss';
 
 const DashBoard = () => {
 	const [profit, setProfit] = useState('');

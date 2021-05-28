@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import './TeamMembers.scss';
-
 export function TeamMembers(){
 	const [teamMembers, setTeamMembers] = useState([]);
 

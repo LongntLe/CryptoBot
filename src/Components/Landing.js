@@ -1,4 +1,3 @@
-import '../Landing.scss';
 import cryptoImage from '../static/img/crypto_moon.png';
 
 export function Landing(){

@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 
-import './App.scss';
+import './sass/app.scss';
 
 import { Landing } from './Components/Landing';
 import ChartContainer from './Components/Chart/ChartContainer';
