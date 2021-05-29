@@ -4,15 +4,15 @@ export function Landing(){
 	return(
 		<div className="landing-container">
 			<header>
-				<h1 className="app-header">BitMex Trading Bot</h1>
+				<h1 className="app-header">CryptoBot</h1>
 				<h2>The Next Generation of Crypto Trading & Charting</h2>
-				<h3>Advanced Trading Algorithm that makes you money*</h3>
+				<h3>Advanced Trading Algorithms that make you money*</h3>
 				<div className="tooltip">
 					Not financial advice 😉😏
 				</div>
 			</header>
 
-			<img 
+			<img
 				className="crypto-img"
 				src={ cryptoImage }
 				alt="Crypto is Headed to the Moon"
