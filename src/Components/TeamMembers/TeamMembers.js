@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import './TeamMembers.scss';
-
 export function TeamMembers(){
 	const [teamMembers, setTeamMembers] = useState([]);
 
@@ -9,7 +7,6 @@ export function TeamMembers(){
 		fetch('http://localhost:5000/api/teammembers')
 		.then(res => res.json())
 		.then(teamMembers => {
-			// console.log('Team fetched...', teamMembers);
 			setTeamMembers(teamMembers);
 		});
 	}

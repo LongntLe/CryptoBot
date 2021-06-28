@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Tooltip } from './Tooltip';
 import * as d3 from 'd3';
-import './Chart.scss';
 
 const Chart = () => {
 	const [chartData, setChartData] = useState([]);
@@ -112,7 +111,7 @@ const Chart = () => {
 			.tickSize(-dimensions.boundedWidth)
 			.tickFormat('')
 			.ticks(12);
-		
+
 		const yAxisGrid = yAxis.append('g')
 			.call(yAxisGridGenerator)
 			.attr('class', 'y axis-grid');
@@ -147,7 +146,7 @@ const Chart = () => {
 			.tickSize(-dimensions.boundedHeight)
 			.tickFormat('')
 			.ticks(12);
-		
+
 		const xAxisGrid = xAxis.append('g')
 			.call(xAxisGridGenerator)
 			.attr('class', 'x axis-grid');
@@ -165,7 +164,7 @@ const Chart = () => {
 			.attr('height', dimensions.boundedHeight)
 			.on('mousemove', handleMouseMove)
 			.on('mouseleave', handleMouseLeave);
-		
+
 		const tooltip = d3.select('#tooltip');
 
 		const tooltipCircle = bounds.append('circle')
@@ -173,9 +172,9 @@ const Chart = () => {
 			.attr('r', 4.5);
 
 		const bisectDate = d3.bisector(function(dataPoint){
-			if (dataPoint && dataPoint.timestamp) return new Date(dataPoint.timestamp); 
+			if (dataPoint && dataPoint.timestamp) return new Date(dataPoint.timestamp);
 		}).left;
-		
+
 		function handleMouseMove(event){
 			const mousePosition = d3.pointer(event);
 			const hoveredPoint = new Date(xScale.invert(mousePosition[0]));
@@ -202,7 +201,7 @@ const Chart = () => {
 				.attr('cy', yScale(closestDataPoint.unrealisedPnl))
 				.style('opacity', 1);
 		}
-		
+
 		function handleMouseLeave(){
 			tooltip.style('opacity', 0);
 			tooltipCircle.style('opacity', 0);
@@ -217,7 +216,8 @@ const Chart = () => {
 	}, [chartData]);
 
 	return (
-		<div id="charts">
+		<div id="chart">
+			<h2>Your Crypto Assets</h2>
 
 			<Tooltip />
 		</div>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './DashBoard.scss';
 
 const DashBoard = () => {
 	const [profit, setProfit] = useState('');
@@ -24,7 +23,7 @@ const DashBoard = () => {
 
 	return (
 		<div className="dashboard-container">
-			<h2>I'm the dashboard component</h2>
+			<h2>Dash</h2>
 			<div className="form-container">
 				<form
 					className="contact-form"

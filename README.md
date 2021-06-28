@@ -1,4 +1,7 @@
-# Wallbreakers Cohort 8: Group Project (Algo trading Bot for Bitmex)
+# CryptoBot
+
+## The Next Generation of Crypto Trading & Charting
+Join us as we take crypto to the moon!
 
 ## Project Setup
 - Install node packages - `npm install`
@@ -22,3 +25,8 @@ Specs:
 * Report on Profit/loss in real time through a dashboard
 - Frontend in React
   - Data visualization in D3
+
+## Contributors
+[@LongntLe](https://github.com/LongntLe)
+
+[@Shugknight24](https://github.com/ShugKnight24)

@@ -1,0 +1,68 @@
+.landing-container {
+	padding-top: 1.5em;
+	height: 100vh;
+	background-color: #0D0106;
+	color: #FBFBFF;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+
+	header {
+		padding: 0 1.5em;
+		text-align: center;
+	}
+
+	.crypto-img {
+		max-width: 100vw;
+		max-height: 50vh;
+	}
+
+	.arrow-down {
+		font-size: 3em;
+		transition: all 1.5s cubic-bezier(.23,1,.32,1);
+		-webkit-animation: blink 1.5s ease infinite;
+		animation: blink 1.5s ease infinite;
+		color: #141CDE;
+		background-color: #FBFBFF;
+		border-radius: 50%;
+		border: 3px outset #FBFBFF;
+
+		&:hover {
+			cursor: pointer;
+			-webkit-animation-play-state: paused;
+			animation-play-state: paused;
+			opacity: .60;
+		}
+	}
+
+	@-webkit-keyframes blink {
+		0% {
+			opacity: 0;
+		}
+		33% {
+			opacity: 0.33;
+		}
+		66% {
+			opacity: 0.66;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes blink {
+		0% {
+			opacity: 0;
+		}
+		33% {
+			opacity: 0.33;
+		}
+		66% {
+			opacity: 0.66;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+}
